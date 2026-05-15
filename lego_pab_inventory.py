@@ -11,6 +11,7 @@ from xml.dom import minidom
 import requests
 from curl_cffi import requests as curl_requests
 from dotenv import load_dotenv
+
 # Reserved for future BrickLink API use
 from requests_oauthlib import OAuth1
 
@@ -27,9 +28,7 @@ auth = OAuth1(
     os.environ["BRICKLINK_TOKEN_SECRET"],
 )
 
-REBRICKABLE_API_KEY = os.environ.get(
-    "REBRICKABLE_API_KEY"
-)
+REBRICKABLE_API_KEY = os.environ.get("REBRICKABLE_API_KEY")
 
 # ------------------------------------------------------------
 # OUTPUT
@@ -111,25 +110,15 @@ CACHE_DIR.mkdir(exist_ok=True)
 # CACHE FILES
 # ------------------------------------------------------------
 
-CACHE_FILE = (
-    CACHE_DIR / "element_mapping_cache.json"
-)
+CACHE_FILE = CACHE_DIR / "element_mapping_cache.json"
 
-OVERRIDE_FILE = (
-    CACHE_DIR / "manual_overrides.json"
-)
+OVERRIDE_FILE = CACHE_DIR / "manual_overrides.json"
 
-DUPLICATE_CACHE_FILE = (
-    CACHE_DIR / "duplicate_cache.json"
-)
+DUPLICATE_CACHE_FILE = CACHE_DIR / "duplicate_cache.json"
 
-BESTSELLER_CACHE_FILE = (
-    CACHE_DIR / "bestseller_snapshot.json"
-)
+BESTSELLER_CACHE_FILE = CACHE_DIR / "bestseller_snapshot.json"
 
-FAILED_CACHE_FILE = (
-    CACHE_DIR / "failed_mappings.json"
-)
+FAILED_CACHE_FILE = CACHE_DIR / "failed_mappings.json"
 
 # ------------------------------------------------------------
 # SAFE JSON LOADER
@@ -139,19 +128,12 @@ FAILED_CACHE_FILE = (
 def load_json_file(path, default):
 
     if os.path.exists(path):
-
         try:
-
             with open(path, encoding="utf-8") as f:
-
                 return json.load(f)
 
         except Exception as e:
-
-            print(
-                f"WARNING: Failed loading "
-                f"{path}: {e}"
-            )
+            print(f"WARNING: Failed loading {path}: {e}")
 
     return default
 
@@ -168,7 +150,6 @@ def save_json_file(path, data):
         "w",
         encoding="utf-8",
     ) as f:
-
         json.dump(data, f, indent=2)
 
 
@@ -208,20 +189,14 @@ bestseller_snapshot = load_json_file(
 
 def get_channel(item):
 
-    channel = item.get(
-        "deliveryChannel"
-    )
+    channel = item.get("deliveryChannel")
 
     if channel:
-
         return channel
 
-    availability = item.get(
-        "availability"
-    )
+    availability = item.get("availability")
 
     if availability == "OUT_OF_STOCK":
-
         return "out_of_stock"
 
     return "unknown"
@@ -251,18 +226,13 @@ def get_channel_filename(channel):
 def lookup_rebrickable(element_id):
 
     if not REBRICKABLE_API_KEY:
-
         return None
 
-    url = (
-        "https://rebrickable.com/api/v3/lego/"
-        f"elements/{element_id}/"
-    )
+    url = f"https://rebrickable.com/api/v3/lego/elements/{element_id}/"
 
     headers = {
-        "Authorization": (
-            f"key {REBRICKABLE_API_KEY}"
-        )
+        "Authorization": (f"key {REBRICKABLE_API_KEY}"),
+        "User-Agent": ("lego-inventory-mapper/1.0"),
     }
 
     #
@@ -270,13 +240,8 @@ def lookup_rebrickable(element_id):
     #
 
     for attempt in range(3):
-
         try:
-
-            print(
-                f"\nRebrickable lookup for "
-                f"{element_id}"
-            )
+            print(f"\nRebrickable lookup for {element_id}")
 
             response = requests.get(
                 url,
@@ -284,20 +249,14 @@ def lookup_rebrickable(element_id):
                 timeout=30,
             )
 
-            print(
-                f"   HTTP "
-                f"{response.status_code}"
-            )
+            print(f"   HTTP {response.status_code}")
 
             #
             # Not found
             #
 
             if response.status_code == 404:
-
-                print(
-                    "   Element not found"
-                )
+                print("   Element not found")
 
                 return None
 
@@ -306,10 +265,7 @@ def lookup_rebrickable(element_id):
             #
 
             if response.status_code == 429:
-
-                print(
-                    "   Rate limited"
-                )
+                print("   Rate limited")
 
                 time.sleep(5)
 
@@ -320,10 +276,7 @@ def lookup_rebrickable(element_id):
             #
 
             if response.status_code >= 500:
-
-                print(
-                    "   Server error"
-                )
+                print("   Server error")
 
                 time.sleep(2)
 
@@ -334,7 +287,6 @@ def lookup_rebrickable(element_id):
             data = response.json()
 
             if DEBUG:
-
                 print(
                     json.dumps(
                         data,
@@ -346,38 +298,21 @@ def lookup_rebrickable(element_id):
             # Extract part
             #
 
-            part = data.get(
-                "part",
-                {}
-            )
+            part = data.get("part", {})
 
             if not part:
-
-                print(
-                    "   Missing part data"
-                )
+                print("   Missing part data")
 
                 return None
 
-            part_name = part.get(
-                "name",
-                ""
-            )
-
-            part_cat_id = part.get(
-                "part_cat_id"
-            )
+            part_cat_id = part.get("part_cat_id")
 
             #
             # Skip DUPLO figures only
             #
 
             if part_cat_id == 57:
-
-                print(
-                    "   Skipping DUPLO "
-                    "figure"
-                )
+                print("   Skipping DUPLO figure")
 
                 return None
 
@@ -385,63 +320,31 @@ def lookup_rebrickable(element_id):
             # BrickLink IDs
             #
 
-            bricklink_ids = (
-                part.get(
-                    "external_ids",
-                    {}
-                ).get(
-                    "BrickLink",
-                    []
-                )
-            )
+            bricklink_ids = part.get("external_ids", {}).get("BrickLink", [])
 
             if not bricklink_ids:
-
-                print(
-                    "   No BrickLink "
-                    "external IDs"
-                )
+                print("   No BrickLink external IDs")
 
                 return None
 
-            bricklink_part = (
-                bricklink_ids[0]
-            )
+            bricklink_part = bricklink_ids[0]
 
             #
             # Extract color
             #
 
-            color = data.get(
-                "color",
-                {}
-            )
+            color = data.get("color", {})
 
             bl_color_ids = (
-                color.get(
-                    "external_ids",
-                    {}
-                ).get(
-                    "BrickLink",
-                    {}
-                ).get(
-                    "ext_ids",
-                    []
-                )
+                color.get("external_ids", {}).get("BrickLink", {}).get("ext_ids", [])
             )
 
             if not bl_color_ids:
-
-                print(
-                    "   No BrickLink "
-                    "color mapping"
-                )
+                print("   No BrickLink color mapping")
 
                 return None
 
-            bricklink_color = (
-                bl_color_ids[0]
-            )
+            bricklink_color = bl_color_ids[0]
 
             #
             # Determine BrickLink type
@@ -449,22 +352,10 @@ def lookup_rebrickable(element_id):
 
             bl_item_type = "PART"
 
-            if (
-                bricklink_part.startswith(
-                    "47"
-                )
-            ):
+            if bricklink_part.startswith("47"):
+                bl_item_type = "MINIFIG"
 
-                bl_item_type = (
-                    "MINIFIG"
-                )
-
-            print(
-                f"   Rebrickable match: "
-                f"{bricklink_part} "
-                f"Color "
-                f"{bricklink_color}"
-            )
+            print(f"   Rebrickable match: {bricklink_part} Color {bricklink_color}")
 
             #
             # Be polite to API
@@ -473,42 +364,24 @@ def lookup_rebrickable(element_id):
             time.sleep(0.5)
 
             return {
-                "bl_part_no": (
-                    bricklink_part
-                ),
-                "bl_color_id": (
-                    bricklink_color
-                ),
-                "bl_item_type": (
-                    bl_item_type
-                ),
-                "source": (
-                    "rebrickable"
-                ),
+                "bl_part_no": (bricklink_part),
+                "bl_color_id": (bricklink_color),
+                "bl_item_type": (bl_item_type),
+                "source": ("rebrickable"),
             }
 
         except requests.exceptions.Timeout:
-
-            print(
-                "   Request timeout"
-            )
+            print("   Request timeout")
 
             time.sleep(2)
 
         except requests.exceptions.ConnectionError:
-
-            print(
-                "   Connection error"
-            )
+            print("   Connection error")
 
             time.sleep(2)
 
         except Exception as e:
-
-            print(
-                "   Rebrickable lookup "
-                f"failed: {e}"
-            )
+            print(f"   Rebrickable lookup failed: {e}")
 
             time.sleep(2)
 
@@ -518,6 +391,7 @@ def lookup_rebrickable(element_id):
 
     return None
 
+
 # ------------------------------------------------------------
 # LEGO FETCH
 # ------------------------------------------------------------
@@ -525,16 +399,10 @@ def lookup_rebrickable(element_id):
 
 def fetch_lego_inventory(per_page=400):
 
-    url = (
-        "https://www.lego.com/api/graphql/"
-        "PickABrickQuery"
-    )
+    url = "https://www.lego.com/api/graphql/PickABrickQuery"
 
     headers = {
-        "Referer": (
-            "https://www.lego.com/en-us/"
-            "pick-and-build/pick-a-brick"
-        ),
+        "Referer": ("https://www.lego.com/en-us/pick-and-build/pick-a-brick"),
         "User-Agent": (
             "Mozilla/5.0 "
             "(Windows NT 10.0; Win64; x64) "
@@ -550,15 +418,10 @@ def fetch_lego_inventory(per_page=400):
     page = 1
 
     while True:
-
-        print(
-            f"\nFetching page {page}..."
-        )
+        print(f"\nFetching page {page}...")
 
         json_body = {
-            "operationName": (
-                "PickABrickQuery"
-            ),
+            "operationName": ("PickABrickQuery"),
             "variables": {
                 "input": {
                     "page": page,
@@ -589,64 +452,25 @@ def fetch_lego_inventory(per_page=400):
             "HTTP:",
             response.status_code,
         )
-        print(
-            f"   HTTP "
-            f"{response.status_code}"
-        )
+
         response.raise_for_status()
-
-        if response.status_code == 404:
-
-            print(
-                "   Element not found"
-            )
-
-            return None
-
-        if response.status_code == 429:
-
-            print(
-                "   RATE LIMITED"
-            )
-
-            time.sleep(5)
-
-            return lookup_rebrickable(
-                element_id
-            )
-
-        if response.status_code >= 500:
-
-            print(
-                "   Server error"
-            )
-
-            return None
 
         data = response.json()
 
-        search = data["data"][
-            "searchElements"
-        ]
+        search = data["data"]["searchElements"]
 
         results = search["results"]
 
         total = search["total"]
 
-        print(
-            f"Received {len(results)} "
-            f"results "
-            f"(total available: {total})"
-        )
+        print(f"Received {len(results)} results (total available: {total})")
 
         if not results:
-
             break
 
         all_results.extend(results)
 
         if len(results) < per_page:
-
             break
 
         page += 1
@@ -660,7 +484,6 @@ def fetch_lego_inventory(per_page=400):
     channels = {}
 
     for item in all_results:
-
         channel = get_channel(item)
 
         channels.setdefault(channel, 0)
@@ -669,13 +492,8 @@ def fetch_lego_inventory(per_page=400):
 
     print("\nChannel summary:")
 
-    for channel, count in sorted(
-        channels.items()
-    ):
-
-        print(
-            f"  {channel}: {count}"
-        )
+    for channel, count in sorted(channels.items()):
+        print(f"  {channel}: {count}")
 
     #
     # Save snapshot
@@ -701,9 +519,7 @@ def fetch_lego_inventory(per_page=400):
 # ------------------------------------------------------------
 
 
-def resolve_element_mapping(
-    element_id
-):
+def resolve_element_mapping(element_id):
 
     element_id = str(element_id)
 
@@ -712,25 +528,17 @@ def resolve_element_mapping(
     #
 
     if element_id in manual_overrides:
+        print("   Using MANUAL override")
 
-        print(
-            "   Using MANUAL override"
-        )
-
-        return manual_overrides[
-            element_id
-        ]
+        return manual_overrides[element_id]
 
     #
     # Rebrickable lookup
     #
 
-    mapping = lookup_rebrickable(
-        element_id
-    )
+    mapping = lookup_rebrickable(element_id)
 
     if mapping:
-
         return mapping
 
     #
@@ -748,6 +556,8 @@ def resolve_element_mapping(
     )
 
     return None
+
+
 # ------------------------------------------------------------
 # XML GENERATION
 # ------------------------------------------------------------
@@ -755,12 +565,9 @@ def resolve_element_mapping(
 
 def build_xml(items):
 
-    inventory = ET.Element(
-        "INVENTORY"
-    )
+    inventory = ET.Element("INVENTORY")
 
     for item in items:
-
         item_el = ET.SubElement(
             inventory,
             "ITEM",
@@ -801,9 +608,7 @@ def build_xml(items):
         encoding="utf-8",
     )
 
-    xml_str = minidom.parseString(
-        xml_bytes
-    ).toprettyxml(indent="  ")
+    xml_str = minidom.parseString(xml_bytes).toprettyxml(indent="  ")
 
     #
     # Remove XML declaration
@@ -811,15 +616,10 @@ def build_xml(items):
 
     xml_lines = xml_str.splitlines()
 
-    xml_str = "\n".join(
-        line
-        for line in xml_lines
-        if not line.startswith(
-            "<?xml"
-        )
-    )
+    xml_str = "\n".join(line for line in xml_lines if not line.startswith("<?xml"))
 
     return xml_str
+
 
 # ------------------------------------------------------------
 # MAIN
@@ -828,17 +628,13 @@ def build_xml(items):
 
 def main():
 
-    logging.basicConfig(
-        level=logging.INFO
-    )
+    logging.basicConfig(level=logging.INFO)
 
     channel_exports = {}
 
     seen_combos = set()
 
-    print(
-        "Fetching LEGO inventory..."
-    )
+    print("Fetching LEGO inventory...")
 
     results = fetch_lego_inventory()
 
@@ -849,15 +645,11 @@ def main():
     unique = {}
 
     for item in results:
-
         unique[item["id"]] = item
 
     results = list(unique.values())
 
-    print(
-        f"\nFound {len(results)} "
-        "unique items"
-    )
+    print(f"\nFound {len(results)} unique items")
 
     #
     # Process items
@@ -867,12 +659,9 @@ def main():
         results,
         start=1,
     ):
-
         element_id = item.get("id")
 
-        design_id = item.get(
-            "designId"
-        )
+        design_id = item.get("designId")
 
         channel = get_channel(item)
 
@@ -890,69 +679,41 @@ def main():
         )
 
         if channel not in channel_exports:
-
             channel_exports[channel] = []
 
         if not element_id:
-
             continue
 
         try:
-
             #
             # Cache first
             #
 
             if element_id in mapping_cache:
+                mapping = mapping_cache[element_id]
 
-                mapping = mapping_cache[
-                    element_id
-                ]
-
-                print(
-                    "   Using cached mapping"
-                )
+                print("   Using cached mapping")
 
             else:
-
-                mapping = (
-                    resolve_element_mapping(
-                        element_id
-                    )
-                )
+                mapping = resolve_element_mapping(element_id)
 
                 if not mapping:
-
-                    print(
-                        "   No BrickLink mapping"
-                    )
+                    print("   No BrickLink mapping")
 
                     continue
 
-                mapping_cache[
-                    element_id
-                ] = mapping
+                mapping_cache[element_id] = mapping
 
                 save_json_file(
                     CACHE_FILE,
                     mapping_cache,
                 )
 
-                print(
-                    "   Cached new mapping"
-                )
+                print("   Cached new mapping")
 
             combo = (
-                str(
-                    mapping[
-                        "bl_part_no"
-                    ]
-                ),
-                int(
-                    mapping[
-                        "bl_color_id"
-                    ]
-                ),
+                str(mapping["bl_part_no"]),
+                int(mapping["bl_color_id"]),
             )
 
             channel_combo = (
@@ -961,45 +722,22 @@ def main():
                 combo[1],
             )
 
-            combo_key = (
-                f"{combo[0]}|"
-                f"{combo[1]}"
-            )
+            combo_key = f"{combo[0]}|{combo[1]}"
 
             #
             # Dedupe
             #
 
-            if (
-                channel_combo
-                in seen_combos
-            ):
+            if channel_combo in seen_combos:
+                print(f"   DUPLICATE SKIPPED: {combo[0]} Color {combo[1]}")
 
-                print(
-                    "   DUPLICATE SKIPPED: "
-                    f"{combo[0]} "
-                    f"Color {combo[1]}"
-                )
-
-                if (
-                    combo_key
-                    not in duplicate_cache
-                ):
-
-                    duplicate_cache[
-                        combo_key
-                    ] = {
-                        "primary_element_id": (
-                            element_id
-                        ),
+                if combo_key not in duplicate_cache:
+                    duplicate_cache[combo_key] = {
+                        "primary_element_id": (element_id),
                         "duplicates": [],
                     }
 
-                duplicate_cache[
-                    combo_key
-                ][
-                    "duplicates"
-                ].append(element_id)
+                duplicate_cache[combo_key]["duplicates"].append(element_id)
 
                 save_json_file(
                     DUPLICATE_CACHE_FILE,
@@ -1008,29 +746,17 @@ def main():
 
                 continue
 
-            seen_combos.add(
-                channel_combo
-            )
+            seen_combos.add(channel_combo)
 
-            channel_exports[
-                channel
-            ].append(
+            channel_exports[channel].append(
                 {
                     "itemid": combo[0],
                     "itemtype": (
-                        "M"
-                        if mapping.get(
-                            "bl_item_type"
-                        ) == "MINIFIG"
-                        else "P"
+                        "M" if mapping.get("bl_item_type") == "MINIFIG" else "P"
                     ),
                     "color": combo[1],
                     "remarks": (
-                        f"{name} "
-                        f"(LEGO Element "
-                        f"{element_id}) "
-                        f"[Channel "
-                        f"{channel}]"
+                        f"{name} (LEGO Element {element_id}) [Channel {channel}]"
                     ).replace(
                         "&",
                         " and ",
@@ -1038,17 +764,11 @@ def main():
                 }
             )
 
-            print(
-                f"   BL: "
-                f"{mapping['bl_part_no']} "
-                f"Color "
-                f"{mapping['bl_color_id']}"
-            )
+            print(f"   BL: {mapping['bl_part_no']} Color {mapping['bl_color_id']}")
 
             time.sleep(0.02)
 
         except Exception as e:
-
             print(
                 "   ERROR:",
                 e,
@@ -1058,50 +778,31 @@ def main():
     # Generate XML exports
     #
 
-    print(
-        "\nGenerating XML exports..."
-    )
+    print("\nGenerating XML exports...")
 
     for (
         channel,
         items,
     ) in channel_exports.items():
-
         if not items:
-
             continue
 
-        xml_output = build_xml(
-            items
-        )
+        xml_output = build_xml(items)
 
-        channel_name = (
-            get_channel_filename(
-                channel
-            )
-        )
+        channel_name = get_channel_filename(channel)
 
-        filename = (
-            f"lego_inventory_"
-            f"{channel_name}.xml"
-        )
+        filename = f"lego_inventory_{channel_name}.xml"
 
-        output_path = (
-            OUTPUT_DIR / filename
-        )
+        output_path = OUTPUT_DIR / filename
 
         with open(
             output_path,
             "w",
             encoding="utf-8",
         ) as f:
-
             f.write(xml_output)
 
-        print(
-            f"Saved {output_path} "
-            f"({len(items)} items)"
-        )
+        print(f"Saved {output_path} ({len(items)} items)")
 
     #
     # Combined export
@@ -1110,35 +811,23 @@ def main():
     all_items = []
 
     for items in channel_exports.values():
-
         all_items.extend(items)
 
-    xml_output = build_xml(
-        all_items
-    )
+    xml_output = build_xml(all_items)
 
-    all_output_path = (
-        OUTPUT_DIR
-        / "lego_inventory_all.xml"
-    )
+    all_output_path = OUTPUT_DIR / "lego_inventory_all.xml"
 
     with open(
         all_output_path,
         "w",
         encoding="utf-8",
     ) as f:
-
         f.write(xml_output)
 
-    print(
-        f"\nSaved "
-        f"{all_output_path} "
-        f"({len(all_items)} items)"
-    )
+    print(f"\nSaved {all_output_path} ({len(all_items)} items)")
 
     print("\nDONE")
 
 
 if __name__ == "__main__":
-
     main()

@@ -1,0 +1,4 @@
+requests
+requests_oauthlib
+curl_cffi
+python-dotenv
