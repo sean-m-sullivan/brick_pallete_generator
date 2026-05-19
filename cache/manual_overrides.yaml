@@ -1,0 +1,630 @@
+'6289812':
+  bl_color_id: 156
+  bl_item_type: PART
+  bl_part_no: 47205pb074
+  ldraw_color_id: 322
+  source: rebrickable_fallback
+'6292954':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 47205pb072
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6294039':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 47205pb069
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6296134':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 47205pb068
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6335905':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 47205pb079
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6376729':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb091
+  source: rebrickable_fallback
+'6388070':
+  bl_color_id: 36
+  bl_item_type: PART
+  bl_part_no: '1566'
+  ldraw_color_id: 10
+  source: rebrickable_fallback
+'6391951':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb294
+  source: rebrickable_fallback
+'6391969':
+  bl_color_id: 4
+  bl_item_type: PART
+  bl_part_no: 47394pb288
+  ldraw_color_id: 25
+  source: rebrickable_fallback
+'6391971':
+  bl_color_id: 236
+  bl_item_type: PART
+  bl_part_no: 47394pb362
+  ldraw_color_id: 368
+  source: rebrickable_fallback
+'6442943':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb350
+  source: rebrickable_fallback
+'6454134':
+  bl_color_id: 3
+  bl_item_type: PART
+  bl_part_no: 4198pb27
+  source: rebrickable_fallback
+'6461199':
+  bl_color_id: 103
+  bl_item_type: PART
+  bl_part_no: 47205pb086
+  ldraw_color_id: 226
+  source: rebrickable_fallback
+'6462567':
+  bl_color_id: 103
+  bl_item_type: PART
+  bl_part_no: '35735'
+  source: rebrickable_fallback
+'6469539':
+  bl_color_id: 104
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb112
+  source: rebrickable_fallback
+'6469554':
+  bl_color_id: 34
+  bl_item_type: PART
+  bl_part_no: 47205pb111
+  ldraw_color_id: 27
+  source: rebrickable_fallback
+'6474068':
+  bl_color_id: 156
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb113
+  source: rebrickable_fallback
+'6483477':
+  bl_color_id: 4
+  bl_item_type: PART
+  bl_part_no: '35701'
+  source: rebrickable_fallback
+'6488901':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb366
+  source: rebrickable_fallback
+'6488925':
+  bl_color_id: 103
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb125
+  source: rebrickable_fallback
+'6489204':
+  bl_color_id: 36
+  bl_item_type: PART
+  bl_part_no: '27262'
+  ldraw_color_id: 10
+  source: rebrickable_fallback
+'6491580':
+  bl_color_id: 34
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb126
+  source: rebrickable_fallback
+'6491600':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb368
+  source: rebrickable_fallback
+'6503218':
+  bl_color_id: 13
+  bl_item_type: PART
+  bl_part_no: '35394'
+  ldraw_color_id: 40
+  source: rebrickable_fallback
+'6503480':
+  bl_color_id: 98
+  bl_item_type: PART
+  bl_part_no: '85959'
+  ldraw_color_id: 57
+  source: rebrickable_fallback
+'6507982':
+  bl_color_id: 13
+  bl_item_type: PART
+  bl_part_no: '27507'
+  ldraw_color_id: 40
+  source: rebrickable_fallback
+'6510737':
+  bl_color_id: 115
+  bl_item_type: PART
+  bl_part_no: '32602'
+  source: rebrickable_fallback
+'6513946':
+  bl_color_id: 51
+  bl_item_type: PART
+  bl_part_no: '92747'
+  ldraw_color_id: 52
+  source: rebrickable_fallback
+'6513991':
+  bl_color_id: 18
+  bl_item_type: PART
+  bl_part_no: 85959pb06
+  ldraw_color_id: 38
+  source: rebrickable_fallback
+'6514123':
+  bl_color_id: 13
+  bl_item_type: PART
+  bl_part_no: 4865b
+  ldraw_color_id: 40
+  source: rebrickable_fallback
+'6514360':
+  bl_color_id: 15
+  bl_item_type: PART
+  bl_part_no: '4185'
+  source: rebrickable_fallback
+'6516277':
+  bl_color_id: 103
+  bl_item_type: PART
+  bl_part_no: 98220pb01
+  source: rebrickable_fallback
+'6516280':
+  bl_color_id: 228
+  bl_item_type: PART
+  bl_part_no: '57895'
+  ldraw_color_id: 360
+  source: rebrickable_fallback
+'6518954':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: '5907'
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6521395':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: x136
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6523010':
+  bl_color_id: 3
+  bl_item_type: PART
+  bl_part_no: x136
+  ldraw_color_id: 14
+  source: rebrickable_fallback
+'6523621':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 3069pb0783
+  source: rebrickable_fallback
+'6523624':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 3069pb0908
+  source: rebrickable_fallback
+'6527696':
+  bl_color_id: 34
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb127
+  source: rebrickable_fallback
+'6528063':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 60601pb017
+  source: rebrickable_fallback
+'6529818':
+  bl_color_id: 6
+  bl_item_type: PART
+  bl_part_no: '1566'
+  ldraw_color_id: 2
+  source: rebrickable_fallback
+'6530043':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '1566'
+  ldraw_color_id: 0
+  source: rebrickable_fallback
+'6531745':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 87552pb070L
+  source: rebrickable_fallback
+'6531938':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 87552pb070R
+  source: rebrickable_fallback
+'6532103':
+  bl_color_id: 19
+  bl_item_type: PART
+  bl_part_no: 98138pb359
+  source: rebrickable_fallback
+'6544013':
+  bl_color_id: 103
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb130
+  source: rebrickable_fallback
+'6550525':
+  bl_color_id: 12
+  bl_item_type: PART
+  bl_part_no: 3626pb3610
+  source: rebrickable_fallback
+'6555881':
+  bl_color_id: 17
+  bl_item_type: PART
+  bl_part_no: 54930c01
+  ldraw_color_id: 36
+  source: rebrickable_fallback
+'6559786':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb374
+  source: rebrickable_fallback
+'6567923':
+  bl_color_id: 103
+  bl_item_type: PART
+  bl_part_no: 7627pb01
+  source: rebrickable_fallback
+'6569837':
+  bl_color_id: 1
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb366
+  source: rebrickable_fallback
+'6569839':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb368
+  source: rebrickable_fallback
+'6569857':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb355
+  source: rebrickable_fallback
+'6569862':
+  bl_color_id: 236
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb369
+  source: rebrickable_fallback
+'6575681':
+  bl_color_id: 95
+  bl_item_type: PART
+  bl_part_no: '3626'
+  source: manual
+'6576895':
+  bl_color_id: 90
+  bl_item_type: PART
+  bl_part_no: '1566'
+  ldraw_color_id: 78
+  source: rebrickable_fallback
+'6585429':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb376
+  source: rebrickable_fallback
+'6585846':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb377
+  source: rebrickable_fallback
+'6586355':
+  bl_color_id: 120
+  bl_item_type: PART
+  bl_part_no: '19900'
+  ldraw_color_id: 308
+  source: rebrickable_fallback
+'6586684':
+  bl_color_id: 156
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb375
+  source: rebrickable_fallback
+'6586720':
+  bl_color_id: 36
+  bl_item_type: PART
+  bl_part_no: 109866pb01
+  source: rebrickable_fallback
+'6586780':
+  bl_color_id: 90
+  bl_item_type: PART
+  bl_part_no: '109866'
+  ldraw_color_id: 78
+  source: rebrickable_fallback
+'6587111':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: 69953pb01
+  ldraw_color_id: 0
+  source: rebrickable_fallback
+'6587170':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '2003'
+  source: rebrickable_fallback
+'6589646':
+  bl_color_id: 5
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb378
+  source: rebrickable_fallback
+'6589826':
+  bl_color_id: 4
+  bl_item_type: PART
+  bl_part_no: 47394pb380
+  ldraw_color_id: 25
+  source: rebrickable_fallback
+'6589830':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb379
+  source: rebrickable_fallback
+'6590056':
+  bl_color_id: 42
+  bl_item_type: PART
+  bl_part_no: '87079'
+  ldraw_color_id: 73
+  source: rebrickable_fallback
+'6590637':
+  bl_color_id: 36
+  bl_item_type: MINIFIG
+  bl_part_no: 47205pb131
+  source: rebrickable_fallback
+'6590834':
+  bl_color_id: 4
+  bl_item_type: MINIFIG
+  bl_part_no: 47394pb381
+  source: rebrickable_fallback
+'6594955':
+  bl_color_id: 104
+  bl_item_type: PART
+  bl_part_no: '5649'
+  ldraw_color_id: 29
+  source: rebrickable_fallback
+'6601183':
+  bl_color_id: 39
+  bl_item_type: PART
+  bl_part_no: '15396'
+  source: rebrickable_fallback
+'6601252':
+  bl_color_id: 157
+  bl_item_type: PART
+  bl_part_no: 20606pb05
+  ldraw_color_id: 30
+  source: rebrickable_fallback
+'6601726':
+  bl_part_no: 107096pb01
+  bl_color_id: 120
+  ldraw_color_id: 15
+  bl_item_type: PART
+  source: manual_override
+'6606096':
+  bl_color_id: 69
+  bl_item_type: PART
+  bl_part_no: '2476'
+  source: rebrickable_fallback
+'6606097':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '13785'
+  source: rebrickable_fallback
+'6606105':
+  bl_color_id: 59
+  bl_item_type: PART
+  bl_part_no: '13785'
+  ldraw_color_id: 320
+  source: rebrickable_fallback
+'6606108':
+  bl_color_id: 4
+  bl_item_type: PART
+  bl_part_no: '13785'
+  ldraw_color_id: 25
+  source: rebrickable_fallback
+'6609229':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '2123'
+  source: rebrickable_fallback
+'6610628':
+  bl_color_id: 2
+  bl_item_type: PART
+  bl_part_no: '38798'
+  source: rebrickable_fallback
+'6610678':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '38798'
+  ldraw_color_id: 0
+  source: rebrickable_fallback
+'6618626':
+  bl_color_id: 36
+  bl_item_type: PART
+  bl_part_no: '98381'
+  ldraw_color_id: 10
+  source: rebrickable_fallback
+'6621858':
+  bl_color_id: 110
+  bl_item_type: PART
+  bl_part_no: '43712'
+  ldraw_color_id: 191
+  source: rebrickable_fallback
+'6628053':
+  bl_color_id: 120
+  bl_item_type: PART
+  bl_part_no: '15500'
+  source: rebrickable_fallback
+'6632608':
+  bl_color_id: 42
+  bl_item_type: PART
+  bl_part_no: 3005pb044
+  source: rebrickable_fallback
+'6632609':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 3005pb028
+  source: rebrickable_fallback
+'6640365':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: '4527'
+  source: rebrickable_fallback
+'6640384':
+  bl_color_id: 86
+  bl_item_type: PART
+  bl_part_no: '2853'
+  ldraw_color_id: 71
+  source: rebrickable_fallback
+'6644624':
+  bl_color_id: 3
+  bl_item_type: PART
+  bl_part_no: 113278pb01
+  source: rebrickable_fallback
+'6645219':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 114290pb01
+  source: rebrickable_fallback
+'6645741':
+  bl_color_id: 80
+  bl_item_type: PART
+  bl_part_no: '15428'
+  ldraw_color_id: 288
+  source: rebrickable_fallback
+'6645795':
+  bl_color_id: 59
+  bl_item_type: PART
+  bl_part_no: '15428'
+  source: rebrickable_fallback
+'6648022':
+  bl_color_id: 68
+  bl_item_type: PART
+  bl_part_no: '88283'
+  ldraw_color_id: 484
+  source: rebrickable_fallback
+'6648023':
+  bl_color_id: 69
+  bl_item_type: PART
+  bl_part_no: '88283'
+  ldraw_color_id: 28
+  source: rebrickable_fallback
+'6649894':
+  bl_color_id: 88
+  bl_item_type: PART
+  bl_part_no: '6064'
+  ldraw_color_id: 70
+  source: rebrickable_fallback
+'6655021':
+  bl_color_id: 155
+  bl_item_type: PART
+  bl_part_no: '80543'
+  ldraw_color_id: 330
+  source: rebrickable_fallback
+'6655023':
+  bl_color_id: 103
+  bl_item_type: PART
+  bl_part_no: '80543'
+  ldraw_color_id: 226
+  source: rebrickable_fallback
+'6655870':
+  bl_color_id: 86
+  bl_item_type: PART
+  bl_part_no: 6192b
+  source: rebrickable_fallback
+'6657229':
+  bl_color_id: 39
+  bl_item_type: PART
+  bl_part_no: 3626pb3208
+  ldraw_color_id: 3
+  source: rebrickable_fallback
+'6657250':
+  bl_color_id: 152
+  bl_item_type: PART
+  bl_part_no: 3626pb3206
+  ldraw_color_id: 323
+  source: rebrickable_fallback
+'6659429':
+  bl_color_id: 158
+  bl_item_type: PART
+  bl_part_no: 98140pb14
+  ldraw_color_id: 326
+  source: rebrickable_fallback
+'6659807':
+  bl_color_id: 104
+  bl_item_type: PART
+  bl_part_no: '1686'
+  source: rebrickable_fallback
+'6659884':
+  bl_color_id: 104
+  bl_item_type: PART
+  bl_part_no: 114542pb01
+  ldraw_color_id: 29
+  source: rebrickable_fallback
+'6659896':
+  bl_color_id: 152
+  bl_item_type: PART
+  bl_part_no: 114542pb02
+  ldraw_color_id: 323
+  source: rebrickable_fallback
+'6660178':
+  bl_color_id: 86
+  bl_item_type: PART
+  bl_part_no: '29096'
+  ldraw_color_id: 71
+  source: rebrickable_fallback
+'6661183':
+  bl_color_id: 228
+  bl_item_type: PART
+  bl_part_no: '25974'
+  ldraw_color_id: 360
+  source: rebrickable_fallback
+'6662139':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: 69953pb01
+  ldraw_color_id: 0
+  source: rebrickable_fallback
+'6666423':
+  bl_color_id: 1
+  bl_item_type: PART
+  bl_part_no: 115499pb05
+  ldraw_color_id: 15
+  source: rebrickable_fallback
+'6666424':
+  bl_color_id: 153
+  bl_item_type: PART
+  bl_part_no: 115499pb03
+  ldraw_color_id: 321
+  source: rebrickable_fallback
+'6666426':
+  bl_color_id: 59
+  bl_item_type: PART
+  bl_part_no: 115499pb04
+  ldraw_color_id: 320
+  source: rebrickable_fallback
+'6666550':
+  bl_color_id: 36
+  bl_item_type: PART
+  bl_part_no: 115499pb02
+  ldraw_color_id: 10
+  source: rebrickable_fallback
+'6666557':
+  bl_color_id: 11
+  bl_item_type: PART
+  bl_part_no: 115499pb01
+  ldraw_color_id: 0
+  source: rebrickable_fallback
+'6666562':
+  bl_color_id: 7
+  bl_item_type: PART
+  bl_part_no: 115499pb06
+  ldraw_color_id: 1
+  source: rebrickable_fallback
+'6668425':
+  bl_color_id: 5
+  bl_item_type: PART
+  bl_part_no: 82276pb08
+  ldraw_color_id: 4
+  source: rebrickable_fallback

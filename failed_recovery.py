@@ -104,7 +104,7 @@ def lookup_rebrickable(
     # Retry transient failures
     #
 
-    for attempt in range(3):
+    for _attempt in range(3):
 
         try:
 

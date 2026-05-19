@@ -8,6 +8,7 @@ from pathlib import Path
 from xml.dom import minidom
 
 import requests
+import yaml
 from curl_cffi import requests as curl_requests
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth1
@@ -34,13 +35,15 @@ CANONICAL_DB_FILE = CACHE_DIR / "canonical_mapping.json"
 
 FAILED_CACHE_FILE = CACHE_DIR / "failed_mappings.json"
 
-OVERRIDE_FILE = CACHE_DIR / "manual_overrides.json"
+OVERRIDE_FILE = CACHE_DIR / "manual_overrides.yaml"
 
 BL_TO_LEGO_CACHE_FILE = CACHE_DIR / "bricklink_to_lego.json"
 
 STUDIO_REFERENCE_FILE = CACHE_DIR / "studio_palette_reference.json"
 
 SNAPSHOT_FILE = CACHE_DIR / "pab_snapshot.json"
+
+FORCE_REFRESH = False
 
 ITEM_TYPE_MAP = {
     "PART": "P",
@@ -118,10 +121,62 @@ fragment ElementLeaf on SearchResultElement {
 }
 """
 
+stats = {
+    "bricklink_success": 0,
+    "manual_override": 0,
+    "rebrickable_fallback": 0,
+    "unresolved": 0,
+    "temporary_failure": 0,
+    "canonical_cache": 0,
+    "incremental_skipped": 0,
+    "incremental_updated": 0,
+    "incremental_removed": 0,
+}
+
 
 # ------------------------------------------------------------
 # HELPERS
 # ------------------------------------------------------------
+def load_yaml_file(path, default):
+
+    if path.exists():
+
+        try:
+
+            with open(
+                path,
+                encoding="utf-8",
+            ) as f:
+
+                data = yaml.safe_load(f)
+
+                if data is None:
+                    return default
+
+                return data
+
+        except Exception as e:
+
+            print(f"Failed loading {path}: {e}")
+
+    return default
+
+
+def save_yaml_file(path, data):
+
+    with open(
+        path,
+        "w",
+        encoding="utf-8",
+    ) as f:
+
+        yaml.safe_dump(
+            data,
+            f,
+            sort_keys=True,
+            allow_unicode=True,
+            default_flow_style=False,
+        )
 
 
 def load_json_file(path, default):
@@ -164,7 +219,7 @@ def save_json_file(path, data):
 # LOAD STATE
 # ------------------------------------------------------------
 
-manual_overrides = load_json_file(
+manual_overrides = load_yaml_file(
     OVERRIDE_FILE,
     {},
 )
@@ -174,9 +229,37 @@ failed_cache = load_json_file(
     {},
 )
 
-canonical_db = {}
+canonical_db = load_json_file(
+    CANONICAL_DB_FILE,
+    {},
+)
+
+print(
+    f"Loaded canonical cache: "
+    f"{len(canonical_db)} entries"
+)
 
 studio_reference = {}
+
+# ------------------------------------------------------------
+# Channel Priority for parts
+# ------------------------------------------------------------
+
+
+def channel_priority(channel):
+
+    priorities = {
+        "pab": 3,
+        "bap": 2,
+        "out_of_stock": 1,
+        "unknown": 0,
+    }
+
+    return priorities.get(
+        str(channel).lower(),
+        0,
+    )
+
 
 # ------------------------------------------------------------
 # STUDIO PALETTE REFERENCE PARSER
@@ -272,9 +355,10 @@ def fetch_lego_inventory(
 ):
 
     url = "https://www.lego.com/api/graphql/PickABrickQuery"
+
     headers = {
         "Referer": ("https://www.lego.com/" "en-us/pick-and-build/" "pick-a-brick"),
-        "User-Agent": ("Mozilla/5.0"),
+        "User-Agent": "Mozilla/5.0",
     }
 
     all_results = []
@@ -286,7 +370,7 @@ def fetch_lego_inventory(
         print(f"Fetching page {page}")
 
         json_body = {
-            "operationName": ("PickABrickQuery"),
+            "operationName": "PickABrickQuery",
             "variables": {
                 "input": {
                     "page": page,
@@ -315,7 +399,9 @@ def fetch_lego_inventory(
         )
 
         if response.status_code != 200:
+
             print(response.text)
+
             response.raise_for_status()
 
         data = response.json()
@@ -327,14 +413,85 @@ def fetch_lego_inventory(
         if not results:
             break
 
-        all_results.extend(results)
+        expanded_results = []
+
+        for item in results:
+
+            #
+            # Primary item
+            #
+
+            expanded_results.append(item)
+
+            #
+            # Sibling color variants
+            #
+
+            for sibling in item.get("siblings", []):
+
+                sibling_copy = dict(item)
+
+                #
+                # Override with sibling-specific fields
+                #
+
+                sibling_copy.update(sibling)
+
+                #
+                # Preserve parent metadata
+                #
+
+                sibling_copy["designId"] = item.get("designId")
+
+                sibling_copy["name"] = item.get("name")
+
+                sibling_copy["deliveryChannel"] = item.get("deliveryChannel")
+
+                sibling_copy["imageUrl"] = item.get("imageUrl")
+
+                sibling_copy["maxOrderQuantity"] = item.get("maxOrderQuantity")
+
+                expanded_results.append(sibling_copy)
+
+        all_results.extend(expanded_results)
 
         if len(results) < per_page:
             break
 
         page += 1
 
-        time.sleep(0.05)
+        time.sleep(0.10)
+
+    #
+    # Deduplicate by LEGO element ID
+    #
+    # Prefer:
+    # PAB > BAP > OUT_OF_STOCK
+    #
+
+    deduped = {}
+
+    for item in all_results:
+
+        element_id = str(item.get("id"))
+
+        existing = deduped.get(element_id)
+
+        if not existing:
+
+            deduped[element_id] = item
+
+            continue
+
+        existing_priority = channel_priority(get_channel(existing))
+
+        new_priority = channel_priority(get_channel(item))
+
+        if new_priority > existing_priority:
+
+            deduped[element_id] = item
+
+    all_results = list(deduped.values())
 
     snapshot_data = {
         "timestamp": time.time(),
@@ -360,39 +517,75 @@ def lookup_bricklink_mapping(
 
     url = "https://api.bricklink.com/api/store/v1/" f"item_mapping/{element_id}"
 
-    try:
+    max_attempts = 3
 
-        response = requests.get(
-            url,
-            auth=auth,
-            timeout=30,
-        )
+    for attempt in range(max_attempts):
 
-        response.raise_for_status()
+        try:
 
-        data = response.json()
+            #
+            # Small pacing delay
+            #
 
-        if data["meta"]["code"] != 200 or not data["data"]:
+            time.sleep(0.10)
+
+            response = requests.get(
+                url,
+                auth=auth,
+                timeout=30,
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            if data["meta"]["code"] != 200 or not data["data"]:
+
+                return None
+
+            mapping = data["data"][0]
+            stats["bricklink_success"] += 1
+            return {
+                "bl_part_no": (mapping["item"]["no"]),
+                "bl_color_id": (mapping["color_id"]),
+                "bl_item_type": (mapping["item"]["type"]),
+                "source": "bricklink",
+            }
+
+        except requests.exceptions.RequestException as e:
+
+            error_message = str(e)
+
+            print(
+                f"BrickLink network failure " f"(attempt {attempt + 1}/" f"{max_attempts}):",
+                error_message,
+            )
+
+            #
+            # Final retry exhausted
+            #
+
+            if attempt == max_attempts - 1:
+
+                return {
+                    "_temporary_failure": True,
+                    "_reason": error_message,
+                }
+
+            #
+            # Exponential backoff
+            #
+
+            time.sleep(2 * (attempt + 1))
+
+        except Exception as e:
+
+            print(
+                "BrickLink lookup failed:",
+                e,
+            )
 
             return None
-
-        mapping = data["data"][0]
-
-        return {
-            "bl_part_no": (mapping["item"]["no"]),
-            "bl_color_id": (mapping["color_id"]),
-            "bl_item_type": (mapping["item"]["type"]),
-            "source": "bricklink",
-        }
-
-    except Exception as e:
-
-        print(
-            "BrickLink lookup failed:",
-            e,
-        )
-
-        return None
 
 
 # ------------------------------------------------------------
@@ -521,6 +714,14 @@ def build_studio_part_file(
 # RESOLVE MAPPING
 # ------------------------------------------------------------
 
+temporary_failures = []
+
+lookup_progress = {
+    "total": 0,
+    "processed": 0,
+    "next_report": 5,
+}
+
 
 def resolve_mapping(
     element_id,
@@ -528,15 +729,64 @@ def resolve_mapping(
 
     element_id = str(element_id)
 
-    if element_id in manual_overrides:
+    #
+    # Manual override
+    #
 
+    if element_id in manual_overrides:
+        stats["manual_override"] += 1
         return manual_overrides[element_id]
 
-    if element_id in failed_cache:
+    #
+    # Previously failed permanently
+    #
+
+    if element_id in failed_cache and not FORCE_REFRESH:
+
+        cache_age = time.time() - failed_cache[element_id].get(
+            "timestamp",
+            0,
+        )
+
+        #
+        # Retry unresolved entries
+        # after 7 days
+        #
+
+        if cache_age < 604800:
+
+            return None
+
+    #
+    # BrickLink lookup
+    #
+
+    mapping = lookup_bricklink_mapping(element_id)
+
+    #
+    # Temporary network/API failure
+    #
+    # Do NOT permanently cache
+    #
+
+    if mapping and mapping.get("_temporary_failure"):
+        stats["temporary_failure"] += 1
+        print(f"TEMPORARY FAILURE: " f"{element_id}")
+
+        print(mapping.get("_reason"))
+
+        temporary_failures.append(
+            {
+                "element_id": element_id,
+                "reason": mapping.get("_reason"),
+            }
+        )
 
         return None
 
-    mapping = lookup_bricklink_mapping(element_id)
+    #
+    # Rebrickable fallback
+    #
 
     if not mapping:
 
@@ -544,18 +794,26 @@ def resolve_mapping(
 
         if mapping:
 
+            print(f"REBRICKABLE FALLBACK: " f"{element_id} " f"-> " f"{mapping['bl_part_no']}")
+            stats["rebrickable_fallback"] += 1
             manual_overrides[element_id] = mapping
 
-            save_json_file(
+            save_yaml_file(
                 OVERRIDE_FILE,
                 manual_overrides,
             )
 
+    #
+    # Permanent failure
+    #
+
     if not mapping:
+        stats["unresolved"] += 1
+        print(f"UNRESOLVED: " f"{element_id}")
 
         failed_cache[element_id] = {
             "status": "unresolved",
-            "timestamp": (time.time()),
+            "timestamp": time.time(),
         }
 
         save_json_file(
@@ -577,11 +835,79 @@ def build_canonical_db(results):
 
     global canonical_db
 
-    canonical = {}
+    canonical = dict(canonical_db)
+
+    lookup_progress["total"] = len(results)
+    lookup_progress["processed"] = 0
+    lookup_progress["next_report"] = 5
 
     for item in results:
 
         element_id = str(item["id"])
+
+        lookup_progress["processed"] += 1
+
+        processed = lookup_progress["processed"]
+
+        total = lookup_progress["total"]
+
+        percent = int((processed / total) * 100)
+
+        if percent >= lookup_progress["next_report"]:
+
+            print(
+                f"BrickLink mapping progress: "
+                f"{percent}% "
+                f"({processed}/{total})"
+            )
+
+            lookup_progress["next_report"] += 5
+
+        existing = canonical.get(element_id)
+
+        current_channel = get_channel(item)
+
+        current_price = (
+            item.get("price", {}).get(
+                "centAmount",
+                0,
+            )
+        )
+
+        #
+        # Incremental skip check
+        #
+
+        if existing:
+
+            existing_price = (
+                existing.get(
+                    "price",
+                    {},
+                ).get(
+                    "cent_amount",
+                    0,
+                )
+            )
+
+            existing_channel = existing.get(
+                "channel"
+            )
+
+            if (
+                existing_price == current_price
+                and existing_channel == current_channel
+                and not FORCE_REFRESH
+            ):
+
+                stats["incremental_skipped"] += 1
+                stats["canonical_cache"] += 1
+
+                continue
+
+        #
+        # Resolve mapping
+        #
 
         mapping = resolve_mapping(element_id)
 
@@ -590,46 +916,103 @@ def build_canonical_db(results):
 
         bricklink_part = mapping["bl_part_no"]
 
-        studio_part = build_studio_part_file(bricklink_part)
+        studio_part = build_studio_part_file(
+            bricklink_part
+        )
 
         studio_color = mapping.get(
-            "ldraw_color_id",
-            7,
+            "ldraw_color_id"
         )
+
+        #
+        # Fallback:
+        # use BrickLink color directly
+        #
+
+        if studio_color is None:
+
+            studio_color = mapping[
+                "bl_color_id"
+            ]
 
         canonical[element_id] = {
             "lego": {
-                "element_id": (element_id),
-                "design_id": (item.get("designId")),
-                "name": (item.get("name")),
+                "element_id": element_id,
+                "design_id": item.get(
+                    "designId"
+                ),
+                "name": item.get("name"),
             },
             "bricklink": {
-                "part_no": (bricklink_part),
-                "color_id": (mapping["bl_color_id"]),
-                "item_type": (mapping["bl_item_type"]),
+                "part_no": bricklink_part,
+                "color_id": mapping[
+                    "bl_color_id"
+                ],
+                "item_type": mapping[
+                    "bl_item_type"
+                ],
             },
             "studio": {
-                "part_file": (studio_part),
-                "color_id": (studio_color),
-                "known_studio_part": (studio_part in studio_reference),
+                "part_file": studio_part,
+                "color_id": studio_color,
+                "known_studio_part": (
+                    studio_part
+                    in studio_reference
+                ),
             },
-            "channel": (get_channel(item)),
+            "channel": get_channel(item),
             "price": {
                 "cent_amount": (
-                    item.get("price", {}).get(
+                    item.get(
+                        "price",
+                        {},
+                    ).get(
                         "centAmount",
                         0,
                     )
                 ),
                 "formatted": (
-                    item.get("price", {}).get(
+                    item.get(
+                        "price",
+                        {},
+                    ).get(
                         "formattedAmount",
                         "$0.00",
                     )
                 ),
             },
-            "source": (mapping["source"]),
+            "source": mapping["source"],
         }
+
+        stats["incremental_updated"] += 1
+
+    #
+    # Remove stale entries
+    #
+
+    current_ids = {
+        str(item["id"])
+        for item in results
+    }
+
+    stale_ids = [
+        element_id
+        for element_id in canonical
+        if element_id not in current_ids
+    ]
+
+    for stale_id in stale_ids:
+
+        del canonical[stale_id]
+
+    stats["incremental_removed"] += len(
+        stale_ids
+    )
+
+    print(
+        f"Removed stale entries: "
+        f"{len(stale_ids)}"
+    )
 
     canonical_db = canonical
 
@@ -638,8 +1021,10 @@ def build_canonical_db(results):
         canonical_db,
     )
 
-    print(f"Saved canonical DB: " f"{len(canonical_db)} entries")
-
+    print(
+        f"Saved canonical DB: "
+        f"{len(canonical_db)} entries"
+    )
 
 # ------------------------------------------------------------
 # XML EXPORT
@@ -696,9 +1081,7 @@ def build_xml(entries):
             item,
             "REMARKS",
         ).text = (
-            f"{entry['lego']['name']} "
-            f"(LEGO Element "
-            f"{entry['lego']['element_id']})"
+            f"{entry['lego']['name']} " f"(LEGO Element " f"{entry['lego']['element_id']})"
         )
 
         ET.SubElement(
@@ -725,11 +1108,15 @@ def build_palette(entries, name):
 
     lines = [
         f"~+{name}",
-        "0",
+        "14",
         "-1",
     ]
 
-    seen = set()
+    counts = {}
+
+    #
+    # Count part/color combinations
+    #
 
     for entry in entries:
 
@@ -742,19 +1129,45 @@ def build_palette(entries, name):
             color_id,
         )
 
-        if key in seen:
-            continue
+        counts[key] = (
+            counts.get(key, 0) + 1
+        )
 
-        seen.add(key)
+    #
+    # Emit palette entries
+    #
+
+    for (
+        part_file,
+        color_id,
+    ), quantity in counts.items():
+
+        #
+        # Find example entry
+        #
+
+        example = next(
+            entry
+            for entry in entries
+            if (
+                entry["studio"]["part_file"]
+                == part_file
+                and entry["studio"]["color_id"]
+                == color_id
+            )
+        )
 
         lines.append(f"0 {part_file}")
 
-        lines.append(f"1 {entry['lego']['name']}")
+        lines.append(
+            f"1 {example['lego']['name']}"
+        )
 
         lines.append(f"2 {color_id}")
 
-    return "\n".join(lines)
+        lines.append(f"4 {quantity}")
 
+    return "\n".join(lines)
 
 # ------------------------------------------------------------
 # EXPORTS
@@ -814,20 +1227,28 @@ def export_outputs():
         entries,
     ) in channels.items():
 
+        palette_name = (
+            "Pick a Brick "
+            + name.replace("_", " ").title()
+        )
+
         palette_output = build_palette(
             entries,
-            name,
+            palette_name,
         )
 
         with open(
-            OUTPUT_DIR / f"{name}",
+            OUTPUT_DIR / palette_name,
             "w",
             encoding="utf-8",
         ) as f:
 
             f.write(palette_output)
 
-        print(f"Saved palette {name}")
+        print(
+            f"Saved palette "
+            f"{palette_name}"
+        )
 
 
 # ------------------------------------------------------------
@@ -844,11 +1265,7 @@ def rebuild_reverse_index():
         entry,
     ) in canonical_db.items():
 
-        key = (
-            f"{entry['bricklink']['part_no']}"
-            f"|{entry['bricklink']['color_id']}"
-            f"|{entry['bricklink']['item_type']}"
-        )
+        key = f"{entry['bricklink']['part_no']}" f"|{entry['bricklink']['color_id']}" f"|{entry['bricklink']['item_type']}"
 
         if key not in reverse:
             reverse[key] = []
@@ -876,14 +1293,6 @@ def main():
 
     results = fetch_lego_inventory()
 
-    unique = {}
-
-    for item in results:
-
-        unique[item["id"]] = item
-
-    results = list(unique.values())
-
     print(f"Unique LEGO items: " f"{len(results)}")
 
     build_canonical_db(results)
@@ -891,6 +1300,22 @@ def main():
     rebuild_reverse_index()
 
     export_outputs()
+
+    print(f"Temporary failures: {len(temporary_failures)}")
+
+    for failure in temporary_failures:
+
+        print(
+            failure["element_id"],
+            failure["reason"],
+        )
+    print()
+
+    print("Lookup Statistics")
+
+    for key, value in stats.items():
+
+        print(f"{key}: {value}")
 
     print("DONE")
 

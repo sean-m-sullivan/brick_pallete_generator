@@ -41,3 +41,6 @@ jobs:
       - name: Run Ruff
         run: |
           ruff check .
+
+      - name: Run isort
+        run: isort . --check-only

@@ -1,0 +1,31 @@
+{
+    "type": "object",
+    "patternProperties": {
+      "^[0-9]+$": {
+        "type": "object",
+        "required": [
+          "bl_part_no",
+          "bl_color_id",
+          "bl_item_type",
+          "source"
+        ],
+        "properties": {
+          "bl_part_no": {
+            "type": "string"
+          },
+          "bl_color_id": {
+            "type": "integer"
+          },
+          "ldraw_color_id": {
+            "type": "integer"
+          },
+          "bl_item_type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
