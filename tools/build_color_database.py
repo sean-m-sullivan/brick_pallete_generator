@@ -10,23 +10,16 @@ from curl_cffi import requests
 
 DATA_DIR = Path("data")
 
-OUTPUT_FILE = (
-    DATA_DIR
-    / "color_database.json"
-)
+OUTPUT_FILE = DATA_DIR / "color_database.json"
 
-URL = (
-    "https://rebrickable.com/colors/"
-)
+URL = "https://rebrickable.com/colors/"
 
 
 def parse_name_list(raw_names):
 
     try:
 
-        parsed = ast.literal_eval(
-            raw_names
-        )
+        parsed = ast.literal_eval(raw_names)
 
         if isinstance(parsed, list):
 
@@ -85,9 +78,7 @@ def parse_multi_mapping(cell):
 
     for raw_id, raw_names in matches:
 
-        names = parse_name_list(
-            raw_names
-        )
+        names = parse_name_list(raw_names)
 
         parsed_entries.append(
             build_variant_entry(
@@ -101,9 +92,7 @@ def parse_multi_mapping(cell):
     return {
         "id": primary["id"],
         "name": primary["name"],
-        "aliases": primary[
-            "aliases"
-        ],
+        "aliases": primary["aliases"],
         "variants": parsed_entries[1:],
     }
 
@@ -121,14 +110,9 @@ def find_colors_table(tables):
 
         print(text[:500])
 
-        if (
-            "BrickLink" in text
-            and "LDraw" in text
-        ):
+        if "BrickLink" in text and "LDraw" in text:
 
-            print(
-                f"\nUsing table {i}"
-            )
+            print(f"\nUsing table {i}")
 
             return table
 
@@ -144,25 +128,14 @@ def build_color_database():
         timeout=60,
         impersonate="chrome124",
         headers={
-            "User-Agent": (
-                "Mozilla/5.0 "
-                "(X11; Linux x86_64) "
-                "AppleWebKit/537.36 "
-                "(KHTML, like Gecko) "
-                "Chrome/124.0.0.0 "
-                "Safari/537.36"
-            ),
-            "Referer": (
-                "https://rebrickable.com/"
-            ),
+            "User-Agent": ("Mozilla/5.0 " "(X11; Linux x86_64) " "AppleWebKit/537.36 " "(KHTML, like Gecko) " "Chrome/124.0.0.0 " "Safari/537.36"),
+            "Referer": ("https://rebrickable.com/"),
         },
     )
 
     response.raise_for_status()
 
-    print(
-        f"HTTP {response.status_code}"
-    )
+    print(f"HTTP {response.status_code}")
 
     soup = BeautifulSoup(
         response.text,
@@ -171,27 +144,17 @@ def build_color_database():
 
     tables = soup.find_all("table")
 
-    print(
-        f"Found tables: "
-        f"{len(tables)}"
-    )
+    print(f"Found tables: " f"{len(tables)}")
 
-    table = find_colors_table(
-        tables
-    )
+    table = find_colors_table(tables)
 
     if not table:
 
-        raise RuntimeError(
-            "Could not find colors table"
-        )
+        raise RuntimeError("Could not find colors table")
 
     rows = table.find_all("tr")
 
-    print(
-        f"Found rows: "
-        f"{len(rows)}"
-    )
+    print(f"Found rows: " f"{len(rows)}")
 
     color_database = {
         "rebrickable": {},
@@ -227,43 +190,23 @@ def build_color_database():
 
         try:
 
-            rebrickable_id = int(
-                cols[1].get_text(
-                    strip=True
-                )
-            )
+            rebrickable_id = int(cols[1].get_text(strip=True))
 
         except ValueError:
 
             continue
 
-        name = cols[2].get_text(
-            strip=True
-        )
+        name = cols[2].get_text(strip=True)
 
-        rgb = cols[3].get_text(
-            strip=True
-        )
+        rgb = cols[3].get_text(strip=True)
 
-        lego = parse_multi_mapping(
-            cols[8]
-        )
+        lego = parse_multi_mapping(cols[8])
 
-        ldraw = parse_multi_mapping(
-            cols[9]
-        )
+        ldraw = parse_multi_mapping(cols[9])
 
-        bricklink = (
-            parse_multi_mapping(
-                cols[10]
-            )
-        )
+        bricklink = parse_multi_mapping(cols[10])
 
-        brickowl = (
-            parse_multi_mapping(
-                cols[11]
-            )
-        )
+        brickowl = parse_multi_mapping(cols[11])
 
         entry = {
             "rebrickable": {
@@ -281,9 +224,7 @@ def build_color_database():
         # Rebrickable
         #
 
-        color_database[
-            "rebrickable"
-        ][str(rebrickable_id)] = entry
+        color_database["rebrickable"][str(rebrickable_id)] = entry
 
         #
         # LEGO
@@ -291,21 +232,11 @@ def build_color_database():
 
         if lego:
 
-            color_database[
-                "lego"
-            ][str(lego["id"])] = entry
+            color_database["lego"][str(lego["id"])] = entry
 
-            for variant in lego[
-                "variants"
-            ]:
+            for variant in lego["variants"]:
 
-                color_database[
-                    "lego"
-                ][
-                    str(
-                        variant["id"]
-                    )
-                ] = entry
+                color_database["lego"][str(variant["id"])] = entry
 
         #
         # LDraw
@@ -313,21 +244,11 @@ def build_color_database():
 
         if ldraw:
 
-            color_database[
-                "ldraw"
-            ][str(ldraw["id"])] = entry
+            color_database["ldraw"][str(ldraw["id"])] = entry
 
-            for variant in ldraw[
-                "variants"
-            ]:
+            for variant in ldraw["variants"]:
 
-                color_database[
-                    "ldraw"
-                ][
-                    str(
-                        variant["id"]
-                    )
-                ] = entry
+                color_database["ldraw"][str(variant["id"])] = entry
 
         #
         # BrickLink
@@ -335,13 +256,7 @@ def build_color_database():
 
         if bricklink:
 
-            color_database[
-                "bricklink"
-            ][
-                str(
-                    bricklink["id"]
-                )
-            ] = entry
+            color_database["bricklink"][str(bricklink["id"])] = entry
 
         #
         # BrickOwl
@@ -349,13 +264,7 @@ def build_color_database():
 
         if brickowl:
 
-            color_database[
-                "brickowl"
-            ][
-                str(
-                    brickowl["id"]
-                )
-            ] = entry
+            color_database["brickowl"][str(brickowl["id"])] = entry
 
     OUTPUT_FILE.parent.mkdir(
         parents=True,
@@ -375,35 +284,17 @@ def build_color_database():
             sort_keys=True,
         )
 
-    print(
-        f"\nSaved color database: "
-        f"{OUTPUT_FILE}"
-    )
+    print(f"\nSaved color database: " f"{OUTPUT_FILE}")
 
-    print(
-        f"Rebrickable colors: "
-        f"{len(color_database['rebrickable'])}"
-    )
+    print(f"Rebrickable colors: " f"{len(color_database['rebrickable'])}")
 
-    print(
-        f"BrickLink colors: "
-        f"{len(color_database['bricklink'])}"
-    )
+    print(f"BrickLink colors: " f"{len(color_database['bricklink'])}")
 
-    print(
-        f"LDraw colors: "
-        f"{len(color_database['ldraw'])}"
-    )
+    print(f"LDraw colors: " f"{len(color_database['ldraw'])}")
 
-    print(
-        f"LEGO colors: "
-        f"{len(color_database['lego'])}"
-    )
+    print(f"LEGO colors: " f"{len(color_database['lego'])}")
 
-    print(
-        f"BrickOwl colors: "
-        f"{len(color_database['brickowl'])}"
-    )
+    print(f"BrickOwl colors: " f"{len(color_database['brickowl'])}")
 
 
 if __name__ == "__main__":

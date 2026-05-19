@@ -1,31 +1,50 @@
+default_language_version:
+  python: python3.14
+
 repos:
+  #
+  # Python
+  #
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.0
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+
   - repo: https://github.com/psf/black
-    rev: 26.1.0
+    rev: 25.1.0
     hooks:
       - id: black
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.0
-    hooks:
-      - id: ruff
-      - id: ruff-format
-
-  - repo: https://github.com/pycqa/isort
+  - repo: https://github.com/PyCQA/isort
     rev: 6.0.1
     hooks:
       - id: isort
 
+  #
+  # Markdown linting
+  #
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+
+  #
+  # Markdown link checking
+  #
+
+  - repo: https://github.com/tcort/markdown-link-check
+    rev: v3.13.7
+    hooks:
+      - id: markdown-link-check
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
       - id: check-json
-      - id: pretty-format-json
-        args:
-          - --autofix
-          - --indent=2
-          - --sort-keys
-
-  - name: Validate JSON
-    run: |
-      jq empty cache/manual_overrides.json
-      jq empty cache/failed_mappings.json
+      - id: check-merge-conflict
